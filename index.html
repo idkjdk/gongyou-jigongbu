@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#FF6B00">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<title>工友记工簿</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="apple-touch-icon" sizes="512x512" href="icon-512.png">
+<style>
+  :root{
+    --primary:#FF6B00;
+    --primary-dark:#E55A00;
+    --primary-light:#FFF2E8;
+    --ink:#1F2329;
+    --ink-2:#4E5969;
+    --ink-3:#86909C;
+    --line:#E5E6EB;
+    --bg:#F5F6F8;
+    --card:#FFFFFF;
+    --danger:#F53F3F;
+    --success:#00B42A;
+    --warning:#FF7D00;
+    --shadow:0 4rpx 16rpx rgba(0,0,0,.06);
+    --shadow-lg:0 8rpx 30rpx rgba(255,107,0,.18);
+    --safe-bottom:env(safe-area-inset-bottom,0px);
+    --safe-top:env(safe-area-inset-top,0px);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue","Microsoft YaHei",sans-serif;
+    color:var(--ink);
+    background:var(--bg);
+    font-size:15px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  button{font-family:inherit;border:none;background:none;cursor:pointer;color:inherit;}
+  input,select,textarea{font-family:inherit;font-size:inherit;color:inherit;outline:none;border:none;background:none;}
+  .app{
+    max-width:520px;
+    margin:0 auto;
+    min-height:100vh;
+    min-height:100dvh;
+    background:var(--bg);
+    position:relative;
+    padding-bottom:calc(64px + var(--safe-bottom));
+  }
+
+  /* 顶部导航 */
+  .topbar{
+    background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);
+    color:#fff;
+    padding:calc(12px + var(--safe-top)) 16px 14px;
+    position:sticky;top:0;z-index:20;
+  }
+  .topbar h1{font-size:18px;font-weight:600;}
+  .topbar .sub{font-size:12px;opacity:.85;margin-top:2px;}
+
+  /* 底部 Tab */
+  .tabbar{
+    position:fixed;
+    bottom:0;left:0;right:0;
+    max-width:520px;margin:0 auto;
+    background:rgba(255,255,255,.96);
+    backdrop-filter:blur(10px);
+    border-top:1px solid var(--line);
+    display:flex;
+    padding-bottom:var(--safe-bottom);
+    z-index:30;
+  }
+  .tabbar button{
+    flex:1;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:2px;
+    padding:8px 0 6px;
+    color:var(--ink-3);
+    font-size:11px;
+    transition:.15s;
+  }
+  .tabbar button .ic{font-size:22px;line-height:1;}
+  .tabbar button.active{color:var(--primary);}
+  .tabbar button.active .ic{transform:translateY(-1px);}
+
+  /* 屏幕 */
+  .screen{display:none;padding:16px;}
+  .screen.active{display:block;animation:fade .25s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+
+  /* 卡片 */
+  .card{
+    background:var(--card);
+    border-radius:16px;
+    padding:16px;
+    box-shadow:var(--shadow);
+    margin-bottom:14px;
+  }
+  .card-title{font-size:14px;color:var(--ink-2);font-weight:500;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;}
+  .card-title .more{font-size:12px;color:var(--primary);font-weight:500;}
+
+  /* 统计大卡 */
+  .stat-hero{
+    background:linear-gradient(135deg,#FF6B00,#FF9A40);
+    border-radius:18px;
+    color:#fff;
+    padding:18px 18px 16px;
+    box-shadow:var(--shadow-lg);
+    margin-bottom:14px;
+    position:relative;
+    overflow:hidden;
+  }
+  .stat-hero::after{
+    content:"";position:absolute;right:-30px;top:-30px;
+    width:140px;height:140px;border-radius:50%;
+    background:rgba(255,255,255,.12);
+  }
+  .stat-hero::before{
+    content:"";position:absolute;right:30px;bottom:-50px;
+    width:90px;height:90px;border-radius:50%;
+    background:rgba(255,255,255,.08);
+  }
+  .stat-hero .label{font-size:13px;opacity:.9;}
+  .stat-hero .big{font-size:34px;font-weight:700;margin-top:4px;letter-spacing:-.5px;}
+  .stat-hero .row{display:flex;gap:18px;margin-top:14px;position:relative;z-index:1;}
+  .stat-hero .row .item{flex:1;}
+  .stat-hero .row .item .v{font-size:18px;font-weight:600;}
+  .stat-hero .row .item .l{font-size:11px;opacity:.85;margin-top:2px;}
+
+  /* 快捷按钮 */
+  .quick-add{
+    width:100%;
+    background:var(--primary);
+    color:#fff;
+    border-radius:14px;
+    padding:14px;
+    font-size:15px;font-weight:600;
+    display:flex;align-items:center;justify-content:center;gap:6px;
+    box-shadow:0 6rpx 18rpx rgba(255,107,0,.32);
+    transition:.15s;
+  }
+  .quick-add:active{transform:scale(.98);background:var(--primary-dark);}
+
+  /* 记录项 */
+  .record-item{
+    display:flex;align-items:center;gap:12px;
+    padding:12px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .record-item:last-child{border-bottom:none;}
+  .record-item .date{
+    width:48px;flex-shrink:0;text-align:center;
+    background:var(--primary-light);color:var(--primary-dark);
+    border-radius:10px;padding:6px 0;
+  }
+  .record-item .date .d{font-size:18px;font-weight:700;line-height:1;}
+  .record-item .date .m{font-size:10px;margin-top:2px;}
+  .record-item .info{flex:1;min-width:0;}
+  .record-item .info .c{font-size:14px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .record-item .info .t{font-size:12px;color:var(--ink-3);margin-top:3px;}
+  .record-item .amt{font-size:15px;font-weight:600;color:var(--primary-dark);text-align:right;}
+  .record-item .amt .sub{font-size:11px;color:var(--ink-3);font-weight:400;display:block;margin-top:2px;}
+
+  /* 空状态 */
+  .empty{text-align:center;padding:36px 20px;color:var(--ink-3);}
+  .empty .ic{font-size:42px;opacity:.4;}
+  .empty .t{font-size:13px;margin-top:8px;}
+
+  /* 表单 */
+  .form-group{margin-bottom:16px;}
+  .form-group label{display:block;font-size:13px;color:var(--ink-2);margin-bottom:8px;font-weight:500;}
+  .form-group label .req{color:var(--danger);}
+  .form-group .hint{font-size:11px;color:var(--ink-3);margin-top:6px;}
+  .input,.select,.textarea{
+    width:100%;
+    background:var(--bg);
+    border:1.5px solid var(--line);
+    border-radius:12px;
+    padding:12px 14px;
+    font-size:15px;
+    transition:.15s;
+  }
+  .input:focus,.select:focus,.textarea:focus{border-color:var(--primary);background:#fff;}
+  .textarea{resize:none;height:72px;line-height:1.5;}
+  /* 数字步进 */
+  .stepper{
+    display:flex;align-items:center;gap:10px;
+    background:var(--bg);border:1.5px solid var(--line);
+    border-radius:12px;padding:6px 8px;
+  }
+  .stepper button{
+    width:36px;height:36px;border-radius:10px;
+    background:#fff;color:var(--primary);
+    font-size:20px;font-weight:600;
+    display:flex;align-items:center;justify-content:center;
+    border:1.5px solid var(--line);
+    transition:.12s;
+  }
+  .stepper button:active{background:var(--primary-light);transform:scale(.94);}
+  .stepper input{
+    flex:1;text-align:center;font-size:18px;font-weight:600;color:var(--ink);
+    background:none;border:none;padding:0;
+  }
+  .stepper .unit{font-size:12px;color:var(--ink-3);margin-right:4px;}
+
+  /* 实时算薪卡 */
+  .calc-card{
+    background:var(--primary-light);
+    border:1.5px dashed var(--primary);
+    border-radius:12px;
+    padding:14px;
+    margin:8px 0 16px;
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .calc-card .l{font-size:13px;color:var(--ink-2);}
+  .calc-card .v{font-size:22px;font-weight:700;color:var(--primary-dark);}
+  .calc-card .v small{font-size:12px;font-weight:400;color:var(--ink-3);}
+
+  /* 主按钮 */
+  .btn{
+    width:100%;
+    background:var(--primary);
+    color:#fff;
+    border-radius:14px;
+    padding:14px;
+    font-size:15px;font-weight:600;
+    transition:.15s;
+  }
+  .btn:active{transform:scale(.98);background:var(--primary-dark);}
+  .btn.ghost{background:var(--primary-light);color:var(--primary-dark);}
+  .btn.ghost:active{background:#FFE6D4;}
+  .btn.danger{background:var(--primary-light);color:var(--danger);}
+  .btn.danger:active{background:#FFE0E0;}
+  .btn[disabled]{background:var(--line);color:var(--ink-3);box-shadow:none;}
+
+  /* 月份切换 */
+  .month-bar{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:12px;
+  }
+  .month-bar .m{font-size:17px;font-weight:600;}
+  .month-bar button{
+    width:36px;height:36px;border-radius:50%;
+    background:#fff;border:1.5px solid var(--line);
+    font-size:16px;color:var(--ink-2);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .month-bar button:active{background:var(--primary-light);}
+
+  /* 月度汇总 */
+  .month-summary{
+    display:grid;grid-template-columns:repeat(2,1fr);gap:10px;
+    margin-bottom:14px;
+  }
+  .month-summary .s{
+    background:#fff;border-radius:12px;padding:12px;
+    box-shadow:var(--shadow);
+  }
+  .month-summary .s .l{font-size:11px;color:var(--ink-3);}
+  .month-summary .s .v{font-size:18px;font-weight:600;margin-top:4px;color:var(--ink);}
+  .month-summary .s.hl .v{color:var(--primary-dark);}
+
+  /* 列表行操作 */
+  .record-row{position:relative;overflow:hidden;}
+  .record-row .swipe-del{
+    position:absolute;right:0;top:0;bottom:0;width:0;
+    background:var(--danger);color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-size:13px;
+    transition:.2s;
+  }
+  .record-row.swiped{transform:translateX(-72px);}
+  .record-row.swiped .swipe-del{width:72px;}
+
+  /* 个人信息卡 */
+  .profile-card{
+    background:linear-gradient(135deg,#FF6B00,#FF9A40);
+    color:#fff;border-radius:18px;padding:20px;
+    box-shadow:var(--shadow-lg);text-align:center;margin-bottom:14px;
+  }
+  .profile-card .avatar{
+    width:64px;height:64px;border-radius:50%;
+    background:rgba(255,255,255,.25);
+    display:flex;align-items:center;justify-content:center;
+    font-size:28px;margin:0 auto 10px;font-weight:600;
+  }
+  .profile-card .name{font-size:20px;font-weight:600;}
+  .profile-card .trade{font-size:13px;opacity:.9;margin-top:3px;}
+  .profile-card .price{font-size:12px;opacity:.85;margin-top:8px;}
+  .profile-card .edit{
+    margin-top:14px;background:rgba(255,255,255,.22);
+    color:#fff;border-radius:20px;padding:6px 16px;font-size:12px;
+  }
+
+  .setting-list{background:#fff;border-radius:14px;overflow:hidden;box-shadow:var(--shadow);}
+  .setting-item{
+    display:flex;align-items:center;gap:12px;
+    padding:14px 16px;border-bottom:1px solid var(--line);
+  }
+  .setting-item:last-child{border-bottom:none;}
+  .setting-item .ic{font-size:18px;width:22px;text-align:center;}
+  .setting-item .t{flex:1;font-size:14px;}
+  .setting-item .v{font-size:12px;color:var(--ink-3);}
+  .setting-item:active{background:var(--bg);}
+
+  /* 弹层 */
+  .modal-mask{
+    position:fixed;inset:0;background:rgba(0,0,0,.45);
+    z-index:50;display:none;align-items:flex-end;justify-content:center;
+  }
+  .modal-mask.show{display:flex;animation:fade .2s;}
+  .modal{
+    background:#fff;width:100%;max-width:520px;
+    border-radius:18px 18px 0 0;padding:18px 18px calc(18px + var(--safe-bottom));
+    max-height:88vh;overflow-y:auto;
+    animation:slideUp .25s ease;
+  }
+  @keyframes slideUp{from{transform:translateY(100%);}to{transform:none;}}
+  .modal .head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+  .modal .head h3{font-size:17px;font-weight:600;}
+  .modal .head .close{font-size:24px;color:var(--ink-3);width:30px;height:30px;display:flex;align-items:center;justify-content:center;}
+  .modal .btn-row{display:flex;gap:10px;margin-top:6px;}
+  .modal .btn-row .btn{flex:1;}
+
+  /* 图表条 */
+  .bar-chart{display:flex;align-items:flex-end;justify-content:space-between;gap:6px;height:90px;padding:8px 0 0;}
+  .bar-chart .bar{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;}
+  .bar-chart .bar .b{width:60%;background:linear-gradient(180deg,var(--primary),var(--primary-dark));border-radius:6px 6px 0 0;min-height:4px;transition:height .4s;}
+  .bar-chart .bar .l{font-size:10px;color:var(--ink-3);}
+
+  /* toast */
+  .toast{
+    position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);
+    background:rgba(0,0,0,.78);color:#fff;
+    padding:10px 18px;border-radius:10px;font-size:13px;
+    z-index:99;opacity:0;pointer-events:none;transition:.2s;
+  }
+  .toast.show{opacity:1;}
+
+  .week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:8px;}
+  .week-grid .w{text-align:center;font-size:10px;color:var(--ink-3);padding:4px 0;}
+  .week-grid .w.has{background:var(--primary-light);color:var(--primary-dark);border-radius:6px;font-weight:600;}
+
+  .seg{display:flex;background:var(--bg);border-radius:10px;padding:3px;margin-bottom:14px;}
+  .seg button{flex:1;padding:8px;font-size:13px;color:var(--ink-3);border-radius:8px;}
+  .seg button.active{background:#fff;color:var(--primary);font-weight:600;box-shadow:var(--shadow);}
+
+  .divider{height:1px;background:var(--line);margin:14px 0;}
+</style>
+</head>
+<body>
+<!-- 微信环境引导横幅 -->
+<div id="wxGuide" style="display:none;position:fixed;top:0;left:0;right:0;z-index:999;background:#FF6B00;color:#fff;padding:10px 14px calc(10px + var(--safe-top));font-size:13px;line-height:1.5;box-shadow:0 2px 8px rgba(0,0,0,.15)">
+  <div style="display:flex;align-items:center;gap:8px">
+    <span style="font-size:18px">⚠</span>
+    <span style="flex:1">微信内无法安装到桌面，请点右上角 <b>⋯</b> 选「<b>在浏览器打开</b>」后，再用浏览器菜单「添加到主屏幕」</span>
+  </div>
+</div>
+<div class="app">
+
+  <!-- ===== 首页 ===== -->
+  <div class="topbar" id="homeTopbar">
+    <h1>工友记工簿</h1>
+    <div class="sub" id="homeGreeting">今天辛苦啦，记得记一笔</div>
+  </div>
+
+  <div class="screen active" id="screen-home">
+    <div class="stat-hero">
+      <div class="label"><span id="homeMonthLabel">本月实发工资</span></div>
+      <div class="big">¥<span id="homeMonthWage">0.00</span></div>
+      <div class="row">
+        <div class="item"><div class="v" id="homeMonthHours">0</div><div class="l">出勤工时(时)</div></div>
+        <div class="item"><div class="v" id="homeMonthOt">0</div><div class="l">加班工时(时)</div></div>
+        <div class="item"><div class="v" id="homeMonthDays">0</div><div class="l">出勤天数(天)</div></div>
+      </div>
+    </div>
+
+    <button class="quick-add" onclick="goAdd()">＋ 记一笔工</button>
+
+    <div class="card" style="margin-top:14px">
+      <div class="card-title">最近记录 <span class="more" onclick="goLedger()">查看全部 ›</span></div>
+      <div id="homeRecentList"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">本周工时</div>
+      <div class="week-grid" id="homeWeekGrid"></div>
+    </div>
+
+    <div class="card" id="homeChartCard">
+      <div class="card-title">近 7 天工资</div>
+      <div class="bar-chart" id="homeBarChart"></div>
+    </div>
+  </div>
+
+  <!-- ===== 记工 ===== -->
+  <div class="topbar">
+    <h1>记一笔工</h1>
+    <div class="sub">填写当天工作情况，自动算工资</div>
+  </div>
+  <div class="screen" id="screen-add">
+    <div class="card">
+      <div class="form-group">
+        <label>日期 <span class="req">*</span></label>
+        <input type="date" class="input" id="f_date">
+      </div>
+      <div class="form-group">
+        <label>出勤工时 <span class="req">*</span></label>
+        <div class="stepper">
+          <button onclick="step('f_hours',-0.5)">−</button>
+          <input type="number" id="f_hours" step="0.5" min="0" max="24" value="8">
+          <span class="unit">小时</span>
+          <button onclick="step('f_hours',0.5)">＋</button>
+        </div>
+        <div class="hint">默认 8 小时算一个工，半天记 4 小时</div>
+      </div>
+      <div class="form-group">
+        <label>加班工时</label>
+        <div class="stepper">
+          <button onclick="step('f_ot',-0.5)">−</button>
+          <input type="number" id="f_ot" step="0.5" min="0" max="24" value="0">
+          <span class="unit">小时</span>
+          <button onclick="step('f_ot',0.5)">＋</button>
+        </div>
+        <div class="hint">加班按 <span id="otRateHint">1.5</span> 倍计算</div>
+      </div>
+      <div class="form-group">
+        <label>工作内容</label>
+        <textarea class="textarea" id="f_content" placeholder="例如：支模、绑钢筋、水电预埋…"></textarea>
+      </div>
+      <div class="form-group">
+        <label>奖金 / 补贴（元）</label>
+        <div class="stepper">
+          <button onclick="step('f_bonus',-10)">−</button>
+          <input type="number" id="f_bonus" step="10" min="0" value="0">
+          <span class="unit">元</span>
+          <button onclick="step('f_bonus',10)">＋</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>扣款（元）</label>
+        <div class="stepper">
+          <button onclick="step('f_deduct',-10)">−</button>
+          <input type="number" id="f_deduct" step="10" min="0" value="0">
+          <span class="unit">元</span>
+          <button onclick="step('f_deduct',10)">＋</button>
+        </div>
+        <div class="hint">迟到、误工、伙食等扣减</div>
+      </div>
+      <div class="form-group">
+        <label>备注</label>
+        <textarea class="textarea" id="f_note" placeholder="可写施工部位、班组安排等"></textarea>
+      </div>
+
+      <div class="calc-card">
+        <div class="l">预计当日工资</div>
+        <div class="v">¥<span id="calcPreview">0.00</span><small id="calcDetail"></small></div>
+      </div>
+
+      <button class="btn" id="saveBtn" onclick="saveRecord()">保存记工</button>
+    </div>
+  </div>
+
+  <!-- ===== 台账 ===== -->
+  <div class="topbar">
+    <h1>记工台账</h1>
+    <div class="sub">按月汇总，可点击编辑、左滑删除</div>
+  </div>
+  <div class="screen" id="screen-ledger">
+    <div class="month-bar">
+      <button onclick="shiftMonth(-1)">‹</button>
+      <div class="m" id="ledgerMonth">2026年9月</div>
+      <button onclick="shiftMonth(1)">›</button>
+    </div>
+    <div class="month-summary">
+      <div class="s"><div class="l">出勤工时</div><div class="v" id="sumHours">0</div></div>
+      <div class="s"><div class="l">加班工时</div><div class="v" id="sumOt">0</div></div>
+      <div class="s"><div class="l">出勤天数</div><div class="v" id="sumDays">0</div></div>
+      <div class="s hl"><div class="l">实发工资</div><div class="v" id="sumWage">¥0</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">每日明细 <span class="more" id="ledgerCount"></span></div>
+      <div id="ledgerList"></div>
+    </div>
+  </div>
+
+  <!-- ===== 我的 ===== -->
+  <div class="topbar">
+    <h1>我的</h1>
+    <div class="sub">个人信息与数据备份</div>
+  </div>
+  <div class="screen" id="screen-profile">
+    <div class="profile-card">
+      <div class="avatar" id="pAvatar">工</div>
+      <div class="name" id="pName">未填写</div>
+      <div class="trade" id="pTrade">点击编辑设置工种</div>
+      <div class="price" id="pPrice"></div>
+      <button class="edit" onclick="openProfileModal()">编辑信息</button>
+    </div>
+
+    <div class="setting-list" style="margin-bottom:14px">
+      <div class="setting-item" onclick="exportJSON()">
+        <span class="ic">📤</span><span class="t">导出数据备份</span><span class="v">JSON ›</span>
+      </div>
+      <div class="setting-item" onclick="exportCSV()">
+        <span class="ic">📊</span><span class="t">导出工资表</span><span class="v">Excel/CSV ›</span>
+      </div>
+      <div class="setting-item" onclick="document.getElementById('importFile').click()">
+        <span class="ic">📥</span><span class="t">导入恢复数据</span><span class="v">选择文件 ›</span>
+        <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
+      </div>
+    </div>
+
+    <div class="setting-list" style="margin-bottom:14px">
+      <div class="setting-item" onclick="openAbout()">
+        <span class="ic">ℹ️</span><span class="t">关于工友记工簿</span><span class="v">v1.0 ›</span>
+      </div>
+      <div class="setting-item" id="installItem" onclick="installApp()" style="display:none">
+        <span class="ic">📲</span><span class="t">添加到手机桌面</span><span class="v">安装应用 ›</span>
+      </div>
+      <div class="setting-item" onclick="clearData()">
+        <span class="ic">🗑️</span><span class="t" style="color:var(--danger)">清空所有数据</span><span class="v"></span>
+      </div>
+    </div>
+
+    <div style="text-align:center;color:var(--ink-3);font-size:11px;padding:8px 0 20px">
+      数据仅保存在本机浏览器，建议每周导出备份一次
+    </div>
+  </div>
+</div>
+
+<!-- 底部 Tab -->
+<div class="tabbar">
+  <button class="active" data-tab="home" onclick="switchTab('home')"><span class="ic">🏠</span>首页</button>
+  <button data-tab="add" onclick="switchTab('add')"><span class="ic">✏️</span>记工</button>
+  <button data-tab="ledger" onclick="switchTab('ledger')"><span class="ic">📋</span>台账</button>
+  <button data-tab="profile" onclick="switchTab('profile')"><span class="ic">👤</span>我的</button>
+</div>
+
+<!-- 编辑记工弹层 -->
+<div class="modal-mask" id="editMask">
+  <div class="modal">
+    <div class="head"><h3>编辑记工</h3><div class="close" onclick="closeModal('editMask')">✕</div></div>
+    <div class="form-group"><label>日期</label><input type="date" class="input" id="e_date"></div>
+    <div class="form-group"><label>出勤工时</label>
+      <div class="stepper"><button onclick="step('e_hours',-0.5)">−</button><input type="number" id="e_hours" step="0.5" min="0" max="24"><span class="unit">时</span><button onclick="step('e_hours',0.5)">＋</button></div>
+    </div>
+    <div class="form-group"><label>加班工时</label>
+      <div class="stepper"><button onclick="step('e_ot',-0.5)">−</button><input type="number" id="e_ot" step="0.5" min="0" max="24"><span class="unit">时</span><button onclick="step('e_ot',0.5)">＋</button></div>
+    </div>
+    <div class="form-group"><label>工作内容</label><textarea class="textarea" id="e_content"></textarea></div>
+    <div class="form-group"><label>奖金(元)</label><input type="number" class="input" id="e_bonus" min="0" value="0"></div>
+    <div class="form-group"><label>扣款(元)</label><input type="number" class="input" id="e_deduct" min="0" value="0"></div>
+    <div class="form-group"><label>备注</label><textarea class="textarea" id="e_note"></textarea></div>
+    <div class="btn-row">
+      <button class="btn danger" onclick="deleteCurrent()">删除</button>
+      <button class="btn" onclick="saveEdit()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑个人信息弹层 -->
+<div class="modal-mask" id="profileMask">
+  <div class="modal">
+    <div class="head"><h3>我的信息</h3><div class="close" onclick="closeModal('profileMask')">✕</div></div>
+    <div class="form-group"><label>姓名 <span class="req">*</span></label><input class="input" id="p_name" placeholder="如：张师傅"></div>
+    <div class="form-group"><label>工种</label>
+      <select class="select" id="p_trade">
+        <option>木工</option><option>钢筋工</option><option>混凝土工</option><option>瓦工</option>
+        <option>抹灰工</option><option>架子工</option><option>水电工</option><option>电焊工</option>
+        <option>油漆工</option><option>防水工</option><option>塔吊司机</option><option>信号工</option>
+        <option>测量员</option><option>普工</option><option>其他</option>
+      </select>
+    </div>
+    <div class="form-group"><label>日单价（8小时一天的工钱）<span class="req">*</span></label>
+      <div class="stepper"><button onclick="step('p_wage',-10)">−</button><input type="number" id="p_wage" min="0" step="10"><span class="unit">元/天</span><button onclick="step('p_wage',10)">＋</button></div>
+      <div class="hint">半天工自动按 4 小时折算</div>
+    </div>
+    <div class="form-group"><label>加班倍率</label>
+      <div class="seg" id="otRateSeg">
+        <button data-v="1.5" class="active">1.5 倍</button>
+        <button data-v="2">2 倍</button>
+        <button data-v="3">3 倍</button>
+      </div>
+    </div>
+    <div class="form-group"><label>入职工日</label><input type="date" class="input" id="p_start"></div>
+    <div class="form-group"><label>联系电话</label><input class="input" id="p_phone" placeholder="选填"></div>
+    <div class="btn-row"><button class="btn" onclick="saveProfile()">保存</button></div>
+  </div>
+</div>
+
+<!-- 关于弹层 -->
+<div class="modal-mask" id="aboutMask">
+  <div class="modal">
+    <div class="head"><h3>关于</h3><div class="close" onclick="closeModal('aboutMask')">✕</div></div>
+    <div style="text-align:center;padding:14px 0 8px">
+      <div style="font-size:48px">👷</div>
+      <div style="font-size:18px;font-weight:600;margin-top:6px">工友记工簿</div>
+      <div style="color:var(--ink-3);font-size:12px;margin-top:4px">v1.0 · 个人记工助手</div>
+    </div>
+    <div style="font-size:13px;color:var(--ink-2);line-height:1.7;padding:10px 4px">
+      专为工地工友设计的轻量记工工具。手机浏览器打开即用，记录每天工时、加班、扣款，自动结算工资。<br><br>
+      · 数据仅保存在本机浏览器，不上传任何服务器<br>
+      · 建议每周通过「导出数据备份」保存一份 JSON 文件<br>
+      · 换手机或重装时，用「导入恢复数据」即可还原<br><br>
+      祝工作顺利、按时结账！
+    </div>
+  </div>
+</div>
+
+<!-- 安装引导弹层(iOS / 不支持自动安装时) -->
+<div class="modal-mask" id="installGuideMask">
+  <div class="modal">
+    <div class="head"><h3>添加到手机桌面</h3><div class="close" onclick="closeModal('installGuideMask')">✕</div></div>
+    <div style="font-size:13px;color:var(--ink-2);line-height:1.7;padding:4px">
+      <div id="installGuideBody"></div>
+    </div>
+    <div class="btn-row"><button class="btn" onclick="closeModal('installGuideMask')">我知道了</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============== 数据层 ============== */
+const KEY='gongyou_jgb_v1';
+let DATA={profile:{name:'',trade:'',dailyWage:0,overtimeRate:1.5,unit:8,startDate:'',phone:''},records:[],meta:{version:1,createdAt:Date.now()}};
+let ledgerCursor=ym(new Date());   // 台账当前月份 YYYY-MM
+let editingId=null;
+
+function load(){
+  try{
+    const raw=localStorage.getItem(KEY);
+    if(raw){const j=JSON.parse(raw);DATA=Object.assign({},DATA,j);DATA.profile=Object.assign({},DATA.profile,j.profile||{});}
+  }catch(e){console.warn('读取失败',e);}
+}
+function persist(){localStorage.setItem(KEY,JSON.stringify(DATA));}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+
+/* ============== 工具 ============== */
+function ymd(d){const x=d instanceof Date?d:new Date(d);return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');}
+function ym(d){const x=d instanceof Date?d:new Date(d);return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0');}
+function cnMonth(s){const [y,m]=s.split('-');return y+'年'+parseInt(m)+'月';}
+function fmt(n){return Number(n||0).toFixed(2).replace(/\.00$/,'').replace(/(\.\d)0$/,'$1');}
+function fmt2(n){return Number(n||0).toFixed(2);}
+function money(n){return '¥'+fmt2(n);}
+function todayStr(){return ymd(new Date());}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1600);}
+
+/* ============== 工资计算 ==============
+   正常工资 = (出勤工时 / 单位工时) * 日单价
+   加班工资 = (加班工时 / 单位工时) * 日单价 * 加班倍率
+   实发     = 正常 + 加班 + 奖金 - 扣款
+*/
+function calcWage(r){
+  const p=DATA.profile;
+  const unit=p.unit||8;
+  const dw=Number(p.dailyWage)||0;
+  const rate=Number(p.overtimeRate)||1.5;
+  const h=Number(r.hours)||0, ot=Number(r.overtimeHours)||0;
+  const normal=(h/unit)*dw;
+  const overtime=(ot/unit)*dw*rate;
+  const bonus=Number(r.bonus)||0;
+  const deduct=Number(r.deduct)||0;
+  return {normal,overtime,bonus,deduct,total:normal+overtime+bonus-deduct};
+}
+
+/* ============== Tab 切换 ============== */
+function switchTab(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+  document.querySelectorAll('.tabbar button').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));
+  window.scrollTo(0,0);
+  if(name==='home')renderHome();
+  if(name==='ledger')renderLedger();
+  if(name==='profile')renderProfile();
+  if(name==='add')renderAddForm();
+}
+function goAdd(){switchTab('add');}
+function goLedger(){switchTab('ledger');}
+
+/* ============== 记工表单 ============== */
+function renderAddForm(){
+  const p=DATA.profile;
+  document.getElementById('otRateHint').textContent=(p.overtimeRate||1.5);
+  if(!document.getElementById('f_date').value)document.getElementById('f_date').value=todayStr();
+  if(p.dailyWage>0&&!document.getElementById('f_hours').dataset.touched){
+    document.getElementById('f_hours').value=8;
+  }
+  recalcAdd();
+}
+function step(id,delta){
+  const el=document.getElementById(id);
+  let v=parseFloat(el.value||0)+delta;
+  if(v<0)v=0;
+  const max=id==='f_hours'||id==='e_hours'||id==='f_ot'||id==='e_ot'?24:999999;
+  if(v>max)v=max;
+  el.value=Math.round(v*100)/100;
+  if(id.startsWith('f_'))recalcAdd();
+  if(id.startsWith('e_')){/* edit 无预览 */}
+}
+function recalcAdd(){
+  const r={hours:+document.getElementById('f_hours').value||0,overtimeHours:+document.getElementById('f_ot').value||0,bonus:+document.getElementById('f_bonus').value||0,deduct:+document.getElementById('f_deduct').value||0};
+  const w=calcWage(r);
+  document.getElementById('calcPreview').textContent=fmt2(w.total);
+  document.getElementById('calcDetail').textContent='  ('+fmt2(w.normal)+'+'+fmt2(w.overtime)+'+'+fmt2(w.bonus)+'-'+fmt2(w.deduct)+')';
+}
+document.addEventListener('input',e=>{
+  if(['f_hours','f_ot','f_bonus','f_deduct'].includes(e.target.id)){
+    e.target.dataset.touched='1';
+    recalcAdd();
+  }
+});
+
+function saveRecord(){
+  const date=document.getElementById('f_date').value;
+  const hours=parseFloat(document.getElementById('f_hours').value)||0;
+  if(!date){toast('请选择日期');return;}
+  if(hours<=0){toast('出勤工时需大于 0');return;}
+  const ot=parseFloat(document.getElementById('f_ot').value)||0;
+  if(DATA.records.some(r=>r.date===date)){
+    if(!confirm('该日期已存在记录，确认覆盖吗？')){
+      const exist=DATA.records.find(r=>r.date===date);
+      openEdit(exist.id);return;
+    }
+    DATA.records=DATA.records.filter(r=>r.date!==date);
+  }
+  const rec={
+    id:uid(),date,hours,overtimeHours:ot,
+    content:document.getElementById('f_content').value.trim(),
+    bonus:parseFloat(document.getElementById('f_bonus').value)||0,
+    deduct:parseFloat(document.getElementById('f_deduct').value)||0,
+    note:document.getElementById('f_note').value.trim(),
+    createdAt:Date.now()
+  };
+  DATA.records.push(rec);
+  DATA.records.sort((a,b)=>a.date<b.date?1:a.date>b.date?-1:0);
+  persist();
+  toast('已记工 '+money(calcWage(rec).total));
+  // 清空表单（保留日期为今天）
+  ['f_content','f_note'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f_ot').value=0;document.getElementById('f_bonus').value=0;document.getElementById('f_deduct').value=0;
+  document.getElementById('f_hours').value=8;
+  recalcAdd();
+  setTimeout(()=>switchTab('home'),700);
+}
+
+/* ============== 编辑/删除 ============== */
+function openEdit(id){
+  const r=DATA.records.find(x=>x.id===id);if(!r)return;
+  editingId=id;
+  document.getElementById('e_date').value=r.date;
+  document.getElementById('e_hours').value=r.hours;
+  document.getElementById('e_ot').value=r.overtimeHours||0;
+  document.getElementById('e_content').value=r.content||'';
+  document.getElementById('e_bonus').value=r.bonus||0;
+  document.getElementById('e_deduct').value=r.deduct||0;
+  document.getElementById('e_note').value=r.note||'';
+  openModal('editMask');
+}
+function saveEdit(){
+  if(!editingId)return;
+  const r=DATA.records.find(x=>x.id===editingId);if(!r)return;
+  r.date=document.getElementById('e_date').value;
+  r.hours=parseFloat(document.getElementById('e_hours').value)||0;
+  r.overtimeHours=parseFloat(document.getElementById('e_ot').value)||0;
+  r.content=document.getElementById('e_content').value.trim();
+  r.bonus=parseFloat(document.getElementById('e_bonus').value)||0;
+  r.deduct=parseFloat(document.getElementById('e_deduct').value)||0;
+  r.note=document.getElementById('e_note').value.trim();
+  DATA.records.sort((a,b)=>a.date<b.date?1:a.date>b.date?-1:0);
+  persist();
+  closeModal('editMask');
+  toast('已更新');
+  renderLedger();renderHome();
+}
+function deleteCurrent(){
+  if(!editingId||!confirm('确认删除这条记工？'))return;
+  DATA.records=DATA.records.filter(x=>x.id!==editingId);
+  persist();closeModal('editMask');
+  toast('已删除');
+  renderLedger();renderHome();
+}
+
+/* ============== 台账 ============== */
+function shiftMonth(d){
+  const [y,m]=ledgerCursor.split('-').map(Number);
+  let ny=y,nm=m+d;
+  if(nm>12){nm=1;ny++;}if(nm<1){nm=12;ny--;}
+  ledgerCursor=ny+'-'+String(nm).padStart(2,'0');
+  renderLedger();
+}
+function renderLedger(){
+  document.getElementById('ledgerMonth').textContent=cnMonth(ledgerCursor);
+  const list=DATA.records.filter(r=>r.date.startsWith(ledgerCursor)).sort((a,b)=>a.date<b.date?1:-1);
+  let sumH=0,sumOt=0,sumW=0;
+  list.forEach(r=>{sumH+=+r.hours||0;sumOt+=+r.overtimeHours||0;sumW+=calcWage(r).total;});
+  document.getElementById('sumHours').textContent=fmt(sumH);
+  document.getElementById('sumOt').textContent=fmt(sumOt);
+  document.getElementById('sumDays').textContent=list.length;
+  document.getElementById('sumWage').textContent=money(sumW);
+  document.getElementById('ledgerCount').textContent=list.length?'共 '+list.length+' 条':'';
+  const box=document.getElementById('ledgerList');
+  if(!list.length){
+    box.innerHTML='<div class="empty"><div class="ic">🗓️</div><div class="t">本月还没有记录</div><button class="btn ghost" style="margin-top:14px;width:auto;padding:10px 24px" onclick="switchTab(\'add\')">去记一笔</button></div>';
+    return;
+  }
+  box.innerHTML=list.map(r=>{
+    const w=calcWage(r);
+    const [yy,mm,dd]=r.date.split('-');
+    return `<div class="record-row" data-id="${r.id}" onclick="openEdit('${r.id}')">
+      <div class="record-item">
+        <div class="date"><div class="d">${parseInt(dd)}</div><div class="m">${parseInt(mm)}月</div></div>
+        <div class="info">
+          <div class="c">${r.content||'未填写内容'}</div>
+          <div class="t">出勤 ${fmt(r.hours)}h${r.overtimeHours?` · 加班 ${fmt(r.overtimeHours)}h`:''}${r.bonus?` · 奖 ${fmt(r.bonus)}`:''}${r.deduct?` · 扣 ${fmt(r.deduct)}`:''}</div>
+        </div>
+        <div class="amt">${money(w.total)}<span class="sub">${r.note?'📝 ':''}${ymd2weekday(r.date)}</span></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function ymd2weekday(s){
+  const d=new Date(s.replace(/-/g,'/'));
+  return ['周日','周一','周二','周三','周四','周五','周六'][d.getDay()];
+}
+
+/* ============== 首页 ============== */
+function renderHome(){
+  const now=new Date();
+  const cur=ym(now);
+  const list=DATA.records.filter(r=>r.date.startsWith(cur));
+  let h=0,ot=0,w=0;
+  list.forEach(r=>{h+=+r.hours||0;ot+=+r.overtimeHours||0;w+=calcWage(r).total;});
+  document.getElementById('homeMonthLabel').textContent=cnMonth(cur)+' · 实发工资';
+  document.getElementById('homeMonthWage').textContent=fmt2(w);
+  document.getElementById('homeMonthHours').textContent=fmt(h);
+  document.getElementById('homeMonthOt').textContent=fmt(ot);
+  document.getElementById('homeMonthDays').textContent=list.length;
+  // 问候
+  const hr=now.getHours();
+  const greet=hr<6?'夜班辛苦了':hr<11?'早上好，开工顺利':hr<14?'中午好，注意休息':hr<18?'下午好，加油干活':'今天辛苦了，记得记工';
+  const name=DATA.profile.name?('，'+DATA.profile.name):'';
+  document.getElementById('homeGreeting').textContent=greet+name;
+
+  // 最近记录
+  const recent=DATA.records.slice(0,5);
+  const box=document.getElementById('homeRecentList');
+  if(!recent.length){
+    box.innerHTML='<div class="empty"><div class="ic">📝</div><div class="t">还没有记录，点上方按钮记第一笔吧</div></div>';
+  }else{
+    box.innerHTML=recent.map(r=>{
+      const w2=calcWage(r);
+      const [yy,mm,dd]=r.date.split('-');
+      return `<div class="record-item" onclick="openEdit('${r.id}')">
+        <div class="date"><div class="d">${parseInt(dd)}</div><div class="m">${parseInt(mm)}月</div></div>
+        <div class="info"><div class="c">${r.content||'未填写'}</div><div class="t">${fmt(r.hours)}h · ${ymd2weekday(r.date)}</div></div>
+        <div class="amt">${money(w2.total)}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // 本周日历
+  const wg=document.getElementById('homeWeekGrid');
+  const days=['一','二','三','四','五','六','日'];
+  const wd=now.getDay()||7;
+  const monday=new Date(now);monday.setDate(now.getDate()-wd+1);
+  let wgHtml='';
+  for(let i=0;i<7;i++){
+    const d=new Date(monday);d.setDate(monday.getDate()+i);
+    const ds=ymd(d);
+    const has=DATA.records.some(r=>r.date===ds);
+    const isToday=ds===todayStr();
+    wgHtml+=`<div class="w ${has?'has':''}" style="${isToday?'outline:2px solid var(--primary);':''}">${i+1}<br><span style="font-size:9px">${days[i]}</span></div>`;
+  }
+  wg.innerHTML=wgHtml;
+
+  // 近 7 天柱状
+  const chart=document.getElementById('homeBarChart');
+  let ch='';
+  for(let i=6;i>=0;i--){
+    const d=new Date(now);d.setDate(now.getDate()-i);
+    const ds=ymd(d);
+    const rec=DATA.records.find(r=>r.date===ds);
+    const val=rec?calcWage(rec).total:0;
+    const max=Math.max(1,...Array.from({length:7},(_,j)=>{const dd=new Date(now);dd.setDate(now.getDate()-(6-j));const rr=DATA.records.find(r=>r.date===ymd(dd));return rr?calcWage(rr).total:0;}));
+    const h2=Math.round(val/max*70);
+    ch+=`<div class="bar"><div class="b" style="height:${val>0?Math.max(4,h2):0}px"></div><div class="l">${d.getDate()}</div></div>`;
+  }
+  chart.innerHTML=ch;
+}
+
+/* ============== 个人信息 ============== */
+function renderProfile(){
+  const p=DATA.profile;
+  const name=p.name||'未填写';
+  document.getElementById('pName').textContent=name;
+  document.getElementById('pAvatar').textContent=(p.name||'工').slice(0,1);
+  document.getElementById('pTrade').textContent=p.trade?('工种：'+p.trade):'点击编辑设置工种';
+  document.getElementById('pPrice').textContent=p.dailyWage?(`日单价 ${money(p.dailyWage)} / 8h，加班 ${(p.overtimeRate||1.5)} 倍`):'';
+}
+function openProfileModal(){
+  const p=DATA.profile;
+  document.getElementById('p_name').value=p.name||'';
+  if(p.trade){
+    const sel=document.getElementById('p_trade');
+    [...sel.options].forEach(o=>{if(o.text===p.trade)sel.value=p.trade;});
+  }
+  document.getElementById('p_wage').value=p.dailyWage||0;
+  document.getElementById('p_start').value=p.startDate||'';
+  document.getElementById('p_phone').value=p.phone||'';
+  document.querySelectorAll('#otRateSeg button').forEach(b=>b.classList.toggle('active',parseFloat(b.dataset.v)===parseFloat(p.overtimeRate||1.5)));
+  openModal('profileMask');
+}
+document.querySelectorAll('#otRateSeg button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#otRateSeg button').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+}));
+function saveProfile(){
+  const name=document.getElementById('p_name').value.trim();
+  const wage=parseFloat(document.getElementById('p_wage').value)||0;
+  if(!name){toast('请填写姓名');return;}
+  if(wage<=0){toast('请填写日单价');return;}
+  const rateBtn=document.querySelector('#otRateSeg button.active');
+  DATA.profile={
+    name,
+    trade:document.getElementById('p_trade').value,
+    dailyWage:wage,
+    overtimeRate:rateBtn?parseFloat(rateBtn.dataset.v):1.5,
+    unit:8,
+    startDate:document.getElementById('p_start').value,
+    phone:document.getElementById('p_phone').value.trim()
+  };
+  persist();closeModal('profileMask');
+  toast('已保存');renderProfile();renderHome();
+}
+
+/* ============== 导入导出 ============== */
+function exportJSON(){
+  if(!DATA.records.length&&!DATA.profile.name){toast('暂无数据可导出');return;}
+  const blob=new Blob([JSON.stringify(DATA,null,2)],{type:'application/json'});
+  download(blob,`记工备份_${todayStr()}.json`);
+  toast('已导出备份文件');
+}
+function exportCSV(){
+  if(!DATA.records.length){toast('暂无记工数据');return;}
+  const p=DATA.profile;
+  const rows=[['日期','星期','工种','姓名','出勤工时','加班工时','日单价','加班倍率','正常工资','加班工资','奖金','扣款','实发工资','工作内容','备注']];
+  DATA.records.slice().sort((a,b)=>a.date>b.date?1:-1).forEach(r=>{
+    const w=calcWage(r);
+    rows.push([r.date,ymd2weekday(r.date),p.trade,p.name,r.hours,r.overtimeHours,p.dailyWage,p.overtimeRate,w.normal.toFixed(2),w.overtime.toFixed(2),r.bonus||0,r.deduct||0,w.total.toFixed(2),r.content||'',r.note||'']);
+  });
+  // 汇总行
+  let th=0,to=0,tn=0,to2=0,tb=0,td=0,tt=0;
+  DATA.records.forEach(r=>{const w=calcWage(r);th+=+r.hours||0;to+=+r.overtimeHours||0;tn+=w.normal;to2+=w.overtime;tb+=+r.bonus||0;td+=+r.deduct||0;tt+=w.total;});
+  rows.push([]);
+  rows.push(['合计','',p.trade,p.name,th.toFixed(1),to.toFixed(1),'','','',tn.toFixed(2),to2.toFixed(2),tb.toFixed(2),td.toFixed(2),tt.toFixed(2),'']);
+  const csv='\uFEFF'+rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  download(new Blob([csv],{type:'text/csv;charset=utf-8'}),`工资金额表_${todayStr()}.csv`);
+  toast('已导出 Excel/CSV');
+}
+function download(blob,name){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download=name;
+  document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);
+}
+function importJSON(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try{
+      const j=JSON.parse(reader.result);
+      if(!j||(!j.records&&!j.profile))throw new Error('格式不符');
+      if(!confirm(`将导入 ${(j.records||[]).length} 条记录与个人信息，会覆盖当前数据，确认？`))return;
+      DATA=Object.assign({},DATA,j);
+      DATA.profile=Object.assign({},DATA.profile,j.profile||{});
+      DATA.records=DATA.records||[];
+      DATA.meta=DATA.meta||{version:1,createdAt:Date.now()};
+      persist();
+      toast('导入成功');
+      switchTab('home');
+    }catch(err){toast('文件格式不正确');}
+  };
+  reader.readAsText(file);
+  e.target.value='';
+}
+function clearData(){
+  if(!confirm('确认清空所有记工数据？此操作不可恢复！'))return;
+  if(!confirm('再次确认：所有记录将被永久删除，请先导出备份！'))return;
+  localStorage.removeItem(KEY);
+  DATA={profile:{name:'',trade:'',dailyWage:0,overtimeRate:1.5,unit:8,startDate:'',phone:''},records:[],meta:{version:1,createdAt:Date.now()}};
+  toast('已清空');switchTab('profile');
+}
+
+/* ============== 弹层 ============== */
+function openModal(id){document.getElementById(id).classList.add('show');}
+function closeModal(id){document.getElementById(id).classList.remove('show');}
+document.querySelectorAll('.modal-mask').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show');}));
+function openAbout(){openModal('aboutMask');}
+
+/* ============== 微信/QQ 内置浏览器引导 ============== */
+(function(){
+  const ua=navigator.userAgent.toLowerCase();
+  const inWechat=/micromessenger/.test(ua);
+  const inQQ=/qq\//.test(ua)&&!/qqbrowser/.test(ua);
+  if(inWechat||inQQ){
+    const g=document.getElementById('wxGuide');
+    if(g){
+      g.style.display='block';
+      // 把应用内容往下挤,避免横幅遮挡顶部
+      document.querySelector('.app').style.marginTop=g.offsetHeight+'px';
+    }
+  }
+})();
+
+/* ============== PWA 安装到桌面 ============== */
+let deferredPrompt=null;
+// 监听 beforeinstallprompt(Android Chrome / 桌面 Chrome / Edge)
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();
+  deferredPrompt=e;
+  const item=document.getElementById('installItem');
+  if(item)item.style.display='flex';
+});
+window.addEventListener('appinstalled',()=>{
+  deferredPrompt=null;
+  const item=document.getElementById('installItem');
+  if(item)item.style.display='none';
+  toast('已添加到桌面，可在桌面打开使用');
+});
+function installApp(){
+  if(deferredPrompt){
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(c=>{
+      if(c.outcome==='installed')toast('安装成功');
+      deferredPrompt=null;
+      const item=document.getElementById('installItem');
+      if(item)item.style.display='none';
+    });
+  }else{
+    // iOS Safari / 其他不支持自动安装的浏览器
+    const ua=navigator.userAgent;
+    const isIOS=/iPhone|iPad|iPod/.test(ua);
+    const isStandalone=window.matchMedia('(display-mode: standalone)').matches
+      ||window.navigator.standalone===true;
+    let html='';
+    if(isStandalone){
+      html='<div style="text-align:center;padding:20px 0">✅ 已安装<br><span style="font-size:12px;color:var(--ink-3)">当前已是桌面应用模式</span></div>';
+    }else if(isIOS){
+      html=`<div style="text-align:center;padding:8px 0 12px"><div style="font-size:48px">📲</div>通过 Safari「分享」按钮添加</div>
+        <ol style="padding-left:20px;line-height:2.2">
+          <li>点 Safari 底部 <b>分享</b> 图标(向上箭头)</li>
+          <li>在弹出菜单选 <b>「添加到主屏幕」</b></li>
+          <li>点右上角 <b>「添加」</b>，桌面即出现「工友记工簿」图标</li>
+        </ol>
+        <div style="background:var(--primary-light);border-radius:10px;padding:10px;font-size:12px;color:var(--primary-dark);margin-top:8px">⚠ 必须用 <b>Safari</b> 打开，微信/QQ 内打开无法添加</div>`;
+    }else{
+      html=`<div style="text-align:center;padding:8px 0 12px"><div style="font-size:48px">📲</div>当前浏览器不支持一键安装</div>
+        <div style="line-height:1.8">
+          请通过浏览器菜单手动添加到桌面:<br><br>
+          · <b>Chrome / Edge</b>:右上角菜单(⋮)→「添加到主屏幕 / 安装应用」<br>
+          · <b>华为 / 小米浏览器</b>:菜单→「添加到主屏幕」<br>
+          · <b>iPhone</b>:需用 <b>Safari</b>，点底部分享→「添加到主屏幕」
+        </div>`;
+    }
+    document.getElementById('installGuideBody').innerHTML=html;
+    openModal('installGuideMask');
+  }
+}
+/* ============== Service Worker 注册(离线可用) ============== */
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('sw.js')
+      .then(reg=>{console.log('SW 注册成功',reg.scope);})
+      .catch(err=>{console.warn('SW 注册失败',err);});
+  });
+}
+
+/* ============== 初始化 ============== */
+load();
+// 首次使用引导
+if(!DATA.profile.name&&!DATA.records.length){
+  setTimeout(()=>{
+    toast('首次使用，请先填写个人信息');
+    setTimeout(()=>{switchTab('profile');openProfileModal();},900);
+  },300);
+}
+renderHome();
+</script>
+</body>
+</html>
