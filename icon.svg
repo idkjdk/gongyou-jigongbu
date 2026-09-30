@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FF8A40"/>
+      <stop offset="1" stop-color="#E55A00"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#g)"/>
+  <circle cx="256" cy="256" r="220" fill="rgba(255,255,255,0.10)"/>
+  <g fill="#fff" stroke="#fff" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
+    <!-- 顶横 -->
+    <line x1="160" y1="150" x2="352" y2="150" stroke-width="22"/>
+    <!-- 左竖 -->
+    <line x1="180" y1="150" x2="180" y2="380"/>
+    <!-- 右竖 -->
+    <line x1="332" y1="150" x2="332" y2="380"/>
+    <!-- 中横 -->
+    <line x1="180" y1="262" x2="332" y2="262"/>
+  </g>
+  <text x="256" y="466" text-anchor="middle" font-family="PingFang SC, sans-serif" font-size="62" font-weight="700" fill="#fff">工友记工</text>
+</svg>
